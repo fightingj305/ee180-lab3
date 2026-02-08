@@ -2,7 +2,7 @@
 
 DIR=lab3_submission
 
-rm -rf $DIR $DIR.tar.gz
+rm -rf $DIR $DIR.zip
 mkdir -p $DIR
 cp README $DIR
 cp -R hw/hdl/verilog/mips $DIR
@@ -10,6 +10,6 @@ cd sim/
 make clean
 cd ..
 cp -R sim/tests $DIR
-tar -czf $DIR.tar.gz $DIR
+(cd $DIR && zip -r ../$DIR.zip .)
 rm -rf $DIR
-echo "Submission ready in $DIR.tar.gz"
+echo "Submission ready in $DIR.zip"
