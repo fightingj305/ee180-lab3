@@ -22,7 +22,7 @@ addiu 1
 andi 1
 bgez 0
 sra 1
-srav 0
+srav 1
 movz X
 addi 1
 movn 1
