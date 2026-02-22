@@ -3,3 +3,5 @@
 *.result
 app*
 *.o
+userlogic_test
+latest_test_results
