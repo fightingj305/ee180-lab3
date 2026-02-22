@@ -20,9 +20,9 @@ boot:
     ori     $s1, $0, 1          # Prepare the 'done' status
     lui     $t0, 0xdeaf         # A = 0xdeafbeef
     ori     $t0, $t0, 0xbeef
-    xori    $t3, $t0, 0x1111    # D = xor(0xdeafbeef, 0x1111) = 0xdeafbefe
-    lui     $t2, 0xdeaf         # expected = 0xdeafbefe
-    ori     $t2, $t2, 0xbefe
+    xori    $t3, $t0, 0x1111    # D = xor(0xdeafbeef, 0x1111) = 0xdeafaffe
+    lui     $t2, 0xdeaf         # expected = 0xdeafaffe
+    ori     $t2, $t2, 0xaffe
     subu    $t4, $t2, $t3       # check if equal (should be 0)
     sltiu   $v0, $t4, 1         # v0 = 1 if equal
     sw      $v0, 4($s0)         # Set the test result

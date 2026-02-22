@@ -6,4 +6,4 @@ Running userlogic for maximum of 1000 cycles
 VCD info: dumpfile tests/lh/streamwave.vcd opened for output.
 Userlogic ran for 21 cycles
 status register = 1
-test register = x
+test register = 569376769

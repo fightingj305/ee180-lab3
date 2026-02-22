@@ -155,7 +155,7 @@ $(WAV_DUMPS): %/$(TST_WAVEDUMP) : $$*/$(TST_RESULT_FILE)
 
 $(WAV_NAMES): wave_%: $$(call test_dumpwave,$$*) | check_xilinx
 	@echo '[Wave]     $@'
-	gtkwave -f $(call test_dir,$*)/$(TST_WAVEDUMP) $(WAV_CONFIG)
+	gwave -f $(call test_dir,$*)/$(TST_WAVEDUMP) $(WAV_CONFIG)
 
 
 clean:

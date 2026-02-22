@@ -88,10 +88,11 @@ module decode (
 
     wire isSLL = (op == `SPECIAL) & (funct == `SLL);
     wire isSRL = (op == `SPECIAL) & (funct == `SRL);
+    wire isSRA = (op == `SPECIAL) & (funct == `SRA);
     wire isSLLV = (op == `SPECIAL) & (funct == `SLLV);
     wire isSRLV = (op == `SPECIAL) & (funct == `SRLV);
 
-    wire isShiftImm = isSLL | isSRL;
+    wire isShiftImm = isSLL | isSRL | isSRA;
     wire isShift = isShiftImm | isSLLV | isSRLV;
 
 //******************************************************************************
@@ -106,6 +107,7 @@ module decode (
             {`SLTIU, `DC6}:     alu_opcode = `ALU_SLTU;
             {`ANDI, `DC6}:      alu_opcode = `ALU_AND;
             {`ORI, `DC6}:       alu_opcode = `ALU_OR;
+            {`XORI, `DC6}:      alu_opcode = `ALU_XOR;
             {`LB, `DC6}:        alu_opcode = `ALU_ADD;
             {`LW, `DC6}:        alu_opcode = `ALU_ADD;
             {`LBU, `DC6}:       alu_opcode = `ALU_ADD;
@@ -118,6 +120,8 @@ module decode (
             {`SPECIAL, `SUB}:   alu_opcode = `ALU_SUB;
             {`SPECIAL, `SUBU}:  alu_opcode = `ALU_SUBU;
             {`SPECIAL, `AND}:   alu_opcode = `ALU_AND;
+            {`SPECIAL, `XOR}:   alu_opcode = `ALU_XOR;
+            {`SPECIAL, `NOR}:   alu_opcode = `ALU_NOR;
             {`SPECIAL, `OR}:    alu_opcode = `ALU_OR;
             {`SPECIAL, `MOVN}:  alu_opcode = `ALU_PASSX;
             {`SPECIAL, `MOVZ}:  alu_opcode = `ALU_PASSX;
@@ -125,8 +129,10 @@ module decode (
             {`SPECIAL, `SLTU}:  alu_opcode = `ALU_SLTU;
             {`SPECIAL, `SLL}:   alu_opcode = `ALU_SLL;
             {`SPECIAL, `SRL}:   alu_opcode = `ALU_SRL;
+            {`SPECIAL, `SRA}:   alu_opcode = `ALU_SRA;
             {`SPECIAL, `SLLV}:  alu_opcode = `ALU_SLL;
             {`SPECIAL, `SRLV}:  alu_opcode = `ALU_SRL;
+            {`SPECIAL2, `MUL}:   alu_opcode = `ALU_MUL;
             // compare rs data to 0, only care about 1 operand
             {`BGTZ, `DC6}:      alu_opcode = `ALU_PASSX;
             {`BLEZ, `DC6}:      alu_opcode = `ALU_PASSX;
@@ -151,7 +157,7 @@ module decode (
 
     wire use_imm = &{op != `SPECIAL, op != `SPECIAL2, op != `BNE, op != `BEQ}; // where to get 2nd ALU operand from: 0 for RtData, 1 for Immediate
 
-    wire [31:0] imm_sign_extend = {{16{immediate[15]}}, immediate};
+    wire [31:0] imm_sign_extend = (op == `ORI || op == `XORI) ? {16'b0, immediate} : {{16{immediate[15]}}, immediate};
     wire [31:0] imm_upper = {immediate, 16'b0};
 
     wire [31:0] imm = (op == `LUI) ? imm_upper : imm_sign_extend;
@@ -161,17 +167,22 @@ module decode (
 //******************************************************************************
 
     wire forward_rs_mem = &{rs_addr == reg_write_addr_mem, rs_addr != `ZERO, reg_we_mem};
+    wire forward_rs_ex = &{rs_addr == reg_write_addr_ex, rs_addr != `ZERO, reg_we_ex};
 
-    assign rs_data = forward_rs_mem ? reg_write_data_mem : rs_data_in;
-    assign rt_data = rt_data_in;
+    assign rs_data = forward_rs_ex ? alu_result_ex : forward_rs_mem ? reg_write_data_mem : rs_data_in;
+    
+    wire forward_rt_mem = &{rt_addr == reg_write_addr_mem, rt_addr != `ZERO, reg_we_mem};
+    wire forward_rt_ex = &{rt_addr == reg_write_addr_ex, rt_addr != `ZERO, reg_we_ex};
+
+    assign rt_data = forward_rt_ex ? alu_result_ex : forward_rt_mem ? reg_write_data_mem : rt_data_in;
 
     wire rs_mem_dependency = &{rs_addr == reg_write_addr_ex, mem_read_ex, rs_addr != `ZERO};
 
     wire isLUI = op == `LUI;
     wire read_from_rs = ~|{isLUI, jump_target, isShiftImm};
 
-    wire isALUImm = |{op == `ADDI, op == `ADDIU, op == `SLTI, op == `SLTIU, op == `ANDI, op == `ORI};
-    wire read_from_rt = ~|{isLUI, jump_target, isALUImm, mem_read};
+    wire isALUImm = |{op == `ADDI, op == `ADDIU, op == `SLTI, op == `SLTIU, op == `ANDI, op == `ORI, op == `XORI, op == `SRA};
+    wire read_from_rt = ~|{isLUI, jump_target, isALUImm, mem_read}; //TODO what is this
 
     assign stall = rs_mem_dependency & read_from_rs;
 
@@ -207,9 +218,9 @@ module decode (
 // Memory control
 //******************************************************************************
     assign mem_we = |{op == `SW, op == `SB, op == `SC};    // write to memory
-    assign mem_read = 1'b0;                     // use memory data for writing to a register
+    assign mem_read = |{op == `LW, op == `LB, op == `LBU, op == `LH, op == `LL};                     // use memory data for writing to a register TODO
     assign mem_byte = |{op == `SB, op == `LB, op == `LBU};    // memory operations use only one byte
-    assign mem_signextend = ~|{op == `LBU};     // sign extend sub-word memory reads
+    assign mem_signextend = |{op == `LB, op == `LH};     // sign extend sub-word memory reads
 
 //******************************************************************************
 // Load linked / Store conditional

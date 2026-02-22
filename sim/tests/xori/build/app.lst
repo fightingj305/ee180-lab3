@@ -11,7 +11,7 @@ Disassembly of section .text:
        c:	3508beef 	ori	t0,t0,0xbeef
       10:	390b1111 	xori	t3,t0,0x1111
       14:	3c0adeaf 	lui	t2,0xdeaf
-      18:	354abefe 	ori	t2,t2,0xbefe
+      18:	354aaffe 	ori	t2,t2,0xaffe
       1c:	014b6023 	subu	t4,t2,t3
       20:	2d820001 	sltiu	v0,t4,1
       24:	ae020004 	sw	v0,4(s0)
