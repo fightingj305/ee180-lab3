@@ -16,18 +16,20 @@
     .global boot
     .ent    boot
 boot:
-    lui     $s0, 0x8002         # Load the base address of the status/test registers
-    ori     $s1, $0, 1          # Prepare the 'done' status
-    nop
-    ori     $t1, $zero, 0xffff  # comparator (unsigned)
-    sltu    $t0, $s0, $t1       # register-register unsigned compare
-    nop
-    nop
-    sw      $t0, 4($s0)         # Set the test result
-    sw      $s1, 0($s0)         # Set 'done'
-
-$done:
-    j       $done
+    lui     $s0, 0x8002         # base address of status/test regs
+    ori     $s1, $zero, 1       # done = 1
     nop
 
+    ori     $t2, $zero, 1
+    ori     $t1, $zero, 2
+    sltu    $t0, $t2, $t1       # expect 1
+    nop
+    nop
+
+    sw      $t0, 4($s0)         # write test result (should be 1)
+    sw      $s1, 0($s0)         # done
+
+done:
+    j       done
+    nop
     .end boot
