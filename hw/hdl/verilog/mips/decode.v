@@ -24,6 +24,7 @@ module decode (
     output wire [31:0] mem_write_data,
     output wire mem_read,
     output wire mem_byte,
+    output wire mem_halfword,
     output wire mem_signextend,
     output wire reg_we,
     output wire movn,
@@ -92,6 +93,7 @@ module decode (
     wire isSLLV = (op == `SPECIAL) & (funct == `SLLV);
     wire isSRAV = (op == `SPECIAL) & (funct == `SRAV);
     wire isSRLV = (op == `SPECIAL) & (funct == `SRLV);
+    wire isSRAV = (op == `SPECIAL) & (funct == `SRAV);
 
     wire isShiftImm = isSLL | isSRL | isSRA;
     wire isShift = isShiftImm | isSLLV | isSRLV | isSRAV;
@@ -134,6 +136,7 @@ module decode (
             {`SPECIAL, `SRAV}:  alu_opcode = `ALU_SRA;
             {`SPECIAL, `SLLV}:  alu_opcode = `ALU_SLL;
             {`SPECIAL, `SRLV}:  alu_opcode = `ALU_SRL;
+            {`SPECIAL, `SRAV}:  alu_opcode = `ALU_SRA;
             {`SPECIAL2, `MUL}:   alu_opcode = `ALU_MUL;
             // compare rs data to 0, only care about 1 operand
             {`BGTZ, `DC6}:      alu_opcode = `ALU_PASSX;
@@ -219,9 +222,10 @@ module decode (
 //******************************************************************************
 // Memory control
 //******************************************************************************
-    assign mem_we = |{op == `SW, op == `SB, op == `SC};    // write to memory
+    assign mem_we = |{op == `SW, op == `SB, op == `SC, op == `SH};    // write to memory
     assign mem_read = |{op == `LW, op == `LB, op == `LBU, op == `LH, op == `LL};                     // use memory data for writing to a register TODO
     assign mem_byte = |{op == `SB, op == `LB, op == `LBU};    // memory operations use only one byte
+    assign mem_halfword = |{op == `SH, op == `LH};             // memory operations use only one halfword
     assign mem_signextend = |{op == `LB, op == `LH};     // sign extend sub-word memory reads
 
 //******************************************************************************
