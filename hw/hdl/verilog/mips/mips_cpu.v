@@ -56,9 +56,12 @@ module mips_cpu (
         .clk            (clk),
         .rst            (rst),
         .en             (en_if),
+        .jump_branch    (jump_branch_id),
         .jump_target    (jump_target_id),
+        .jump_reg       (jump_reg_id),
         .pc_id          (pc_id),
         .instr_id       (instr_id[25:0]),
+        .jr_pc_id       (jr_pc_id),
         .pc             (pc_if)
     );
 

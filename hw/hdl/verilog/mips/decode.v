@@ -82,6 +82,9 @@ module decode (
 //******************************************************************************
 
     wire isJ    = (op == `J);
+    wire isJR   = (op == `SPECIAL) & (funct == `JR);
+    wire isJAL  = (op == `JAL);
+    wire isJALR = (op == `SPECIAL) & (funct == `JALR);
 
 //******************************************************************************
 // shift instruction decode
@@ -188,7 +191,7 @@ module decode (
     wire read_from_rs = ~|{isLUI, jump_target, isShiftImm};
 
     wire isALUImm = |{op == `ADDI, op == `ADDIU, op == `SLTI, op == `SLTIU, op == `ANDI, op == `ORI, op == `XORI, op == `SRA};
-    wire read_from_rt = ~|{isLUI, jump_target, isALUImm, mem_read}; //TODO what is this
+    wire read_from_rt = ~|{isLUI, jump_target, jump_reg, isALUImm, mem_read}; //TODO what is this
 
     assign stall = rs_mem_dependency & read_from_rs;
 
@@ -208,13 +211,13 @@ module decode (
     // for link operations, use next pc (current pc + 8)
     // for immediate operations, use Imm
     // otherwise use rt
-
-    assign alu_op_y = (use_imm) ? imm : rt_data;
-    assign reg_write_addr = (use_imm) ? rt_addr : rd_addr;
+    wire isLink = isBranchLink | isJAL | isJALR;
+    assign alu_op_y = (isLink) ? (pc + 32'h8) : ((use_imm) ? imm : rt_data);
+    assign reg_write_addr =  (isLink) ? `RA : ((use_imm) ? rt_addr : rd_addr);
 
     // determine when to write back to a register (any operation that isn't an
     // unconditional store, non-linking branch, or non-linking jump)
-    assign reg_we = ~|{(mem_we & (op != `SC)), isJ, isBGEZNL, isBGTZ, isBLEZ, isBLTZNL, isBNE, isBEQ};
+    assign reg_we = ~|{(mem_we & (op != `SC)), isJ, isJR, isBGEZNL, isBGTZ, isBLEZ, isBLTZNL, isBNE, isBEQ};
 
     // determine whether a register write is conditional
     assign movn = &{op == `SPECIAL, funct == `MOVN};
@@ -249,7 +252,7 @@ module decode (
     assign jump_branch = |{isBEQ & isEqual,
                            isBNE & ~isEqual};
 
-    assign jump_target = isJ;
-    assign jump_reg = 1'b0;
+    assign jump_target = isJ | isJAL;
+    assign jump_reg = isJR | isJALR;
 
 endmodule
