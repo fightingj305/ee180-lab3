@@ -240,10 +240,10 @@ module decode (
     assign mem_sc_id = (op == `SC);
 
     // 'atomic_id' is high when a load-linked has not been followed by a store.
-    assign atomic_id = 1'b0;
+    assign atomic_id = (op == `LL) | (atomic_ex & ~mem_we); // set on LL, reset on any store
 
     // 'mem_sc_mask_id' is high when a store conditional should not store
-    assign mem_sc_mask_id = 1'b0;
+    assign mem_sc_mask_id = mem_sc_id & ~atomic_ex; // mask store conditional when not atomic
 
 //******************************************************************************
 // Branch resolution

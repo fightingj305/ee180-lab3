@@ -34,7 +34,7 @@ module mips_cpu (
     wire atomic_id, atomic_ex;
     wire [3:0] alu_opcode_id, alu_opcode_ex;
     wire [31:0] alu_op_x_id, alu_op_y_id, alu_op_x_ex, alu_op_y_ex;
-    wire [31:0] alu_result_ex, alu_result_mem;
+    wire [31:0] alu_result_ex, alu_result_mem, alu_sc_result_ex;
     wire alu_op_y_zero_ex;
     wire mem_we_id, mem_we_ex;
     wire mem_read_id, mem_read_ex, mem_read_mem;
@@ -112,7 +112,7 @@ module mips_cpu (
         // inputs for forwarding/stalling from X
         .reg_we_ex          (reg_we_ex),
         .reg_write_addr_ex  (reg_write_addr_ex),
-        .alu_result_ex      (alu_result_ex),
+        .alu_result_ex      (alu_sc_result_ex),
         .mem_read_ex        (mem_read_ex),
 
         // inputs for forwarding/stalling from M
@@ -123,7 +123,7 @@ module mips_cpu (
 
     // Load-linked / Store-conditional
     wire atomic_en = en & mem_read_id;
-    dffarre       atomic  (.clk(clk), .ar(rst), .r(rst_id), .en(atomic_en), .d(mem_atomic_id), .q(mem_atomic_ex));
+    dffarre       atomic  (.clk(clk), .ar(rst), .r(rst_id), .en(en), .d(mem_atomic_id), .q(mem_atomic_ex));
     dffarre       sc      (.clk(clk), .ar(rst), .r(rst_id), .en(en), .d(mem_sc_id), .q(mem_sc_ex));
 
     // needed for X stage
@@ -158,8 +158,8 @@ module mips_cpu (
     );
 
     // needed for M stage
-    wire [31:0] sc_result = {{31{1'b0}},(mem_sc_ex & mem_we_ex)};
-    wire [31:0] alu_sc_result_ex = alu_result_ex;   // TODO: Need to conditionally inject SC value
+    wire [31:0] sc_result = {{31{1'b0}},(mem_sc_ex & mem_we_ex)}; 
+    assign alu_sc_result_ex = mem_sc_ex ? sc_result : alu_result_ex;
     dffare #(32) alu_result_ex2mem (.clk(clk), .r(rst), .en(en), .d(alu_sc_result_ex), .q(alu_result_mem));
     dffare mem_read_ex2mem (.clk(clk), .r(rst), .en(en), .d(mem_read_ex), .q(mem_read_mem));
     dffare mem_byte_ex2mem (.clk(clk), .r(rst), .en(en), .d(mem_byte_ex), .q(mem_byte_mem));
