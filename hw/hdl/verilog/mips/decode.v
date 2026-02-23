@@ -193,10 +193,10 @@ module decode (
     wire read_from_rs = ~|{isLUI, jump_target, isShiftImm};
 
     wire isALUImm = |{op == `ADDI, op == `ADDIU, op == `SLTI, op == `SLTIU, op == `ANDI, op == `ORI, op == `XORI, op == `SRA};
-    wire read_from_rt = ~|{isLUI, jump_target, jump_reg, isALUImm, mem_read}; //TODO what is this
+    wire read_from_rt = ~|{isLUI, jump_target, jump_reg, isALUImm, mem_read};
 
     assign stall = rs_mem_dependency & read_from_rs;
-
+    
     assign jr_pc = rs_data;
     assign mem_write_data = rt_data;
 
