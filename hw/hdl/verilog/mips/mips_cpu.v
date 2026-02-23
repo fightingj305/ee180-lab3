@@ -44,6 +44,7 @@ module mips_cpu (
     wire [7:0] mem_read_data_byte_select;
     wire [15:0] mem_read_data_halfword_select;
     wire [31:0] mem_read_data_byte_extend;
+    wire [31:0] mem_read_data_halfword_extend;
     wire mem_atomic_id, mem_atomic_ex, mem_atomic_en, mem_sc_mask_id;
     wire mem_sc_id, mem_sc_ex;
     wire alu_overflow;
@@ -177,7 +178,7 @@ module mips_cpu (
                                        ((alu_result_mem[1:0] == 2'b01) ? mem_read_data[23:16] :
                                        ((alu_result_mem[1:0] == 2'b10) ? mem_read_data[15:8] : mem_read_data[7:0]));
     assign mem_read_data_byte_extend = {{24{mem_signextend_mem & mem_read_data_byte_select[7]}}, mem_read_data_byte_select};
-    assign mem_read_data_halfword_select = (alu_result_mem[1]) ? mem_read_data[31:16] : mem_read_data[15:0];
+    assign mem_read_data_halfword_select = (alu_result_mem[1]) ? mem_read_data[15:0] : mem_read_data[31:16];
     assign mem_read_data_halfword_extend = {{16{mem_signextend_mem & mem_read_data_halfword_select[15]}}, mem_read_data_halfword_select};
     assign mem_out =  (mem_halfword_mem) ? mem_read_data_halfword_extend : (mem_byte_mem) ? mem_read_data_byte_extend : mem_read_data;
     assign reg_write_data_mem = mem_read_mem ? mem_out : alu_result_mem;
