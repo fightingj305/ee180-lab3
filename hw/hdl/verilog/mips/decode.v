@@ -248,9 +248,17 @@ module decode (
 //******************************************************************************
 
     wire isEqual = rs_data == rt_data;
+    wire rsGEZ = ~rs_data[31];
+    wire rsGTZ = ~rs_data[31] & (|rs_data);
+    wire rsLEZ = rs_data[31] | (rs_data == 32'd0);
+    wire rsLTZ = rs_data[31];
 
     assign jump_branch = |{isBEQ & isEqual,
-                           isBNE & ~isEqual};
+                           isBNE & ~isEqual,
+                           isBGEZ & rsGEZ,
+                           isBGTZ & rsGTZ,
+                           isBLEZ & rsLEZ,
+                           isBLTZ & rsLTZ};
 
     assign jump_target = isJ | isJAL;
     assign jump_reg = isJR | isJALR;
