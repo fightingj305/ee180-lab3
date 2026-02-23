@@ -168,7 +168,7 @@ module decode (
 
     wire use_imm = &{op != `SPECIAL, op != `SPECIAL2, op != `BNE, op != `BEQ}; // where to get 2nd ALU operand from: 0 for RtData, 1 for Immediate
 
-    wire [31:0] imm_sign_extend = (op == `ORI || op == `XORI) ? {16'b0, immediate} : {{16{immediate[15]}}, immediate};
+    wire [31:0] imm_sign_extend = (op == `ANDI || op == `ORI || op == `XORI) ? {16'b0, immediate} : {{16{immediate[15]}}, immediate};
     wire [31:0] imm_upper = {immediate, 16'b0};
 
     wire [31:0] imm = (op == `LUI) ? imm_upper : imm_sign_extend;
@@ -188,14 +188,15 @@ module decode (
     assign rt_data = forward_rt_ex ? alu_result_ex : forward_rt_mem ? reg_write_data_mem : rt_data_in;
 
     wire rs_mem_dependency = &{rs_addr == reg_write_addr_ex, mem_read_ex, rs_addr != `ZERO};
+    wire rt_mem_dependency = &{rt_addr == reg_write_addr_ex, mem_read_ex, rt_addr != `ZERO};
 
     wire isLUI = op == `LUI;
     wire read_from_rs = ~|{isLUI, jump_target, isShiftImm};
-
-    wire isALUImm = |{op == `ADDI, op == `ADDIU, op == `SLTI, op == `SLTIU, op == `ANDI, op == `ORI, op == `XORI, op == `SRA};
     wire read_from_rt = ~|{isLUI, jump_target, jump_reg, isALUImm, mem_read};
 
-    assign stall = rs_mem_dependency & read_from_rs;
+    wire isALUImm = |{op == `ADDI, op == `ADDIU, op == `SLTI, op == `SLTIU, op == `ANDI, op == `ORI, op == `XORI};
+
+    assign stall = (rs_mem_dependency & read_from_rs) | (rt_mem_dependency & read_from_rt);
     
     assign jr_pc = rs_data;
     assign mem_write_data = rt_data;

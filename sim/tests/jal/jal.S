@@ -16,24 +16,29 @@
     .set    noreorder
     .global boot
     .ent    boot
+    
 boot:
-    lui     $s0, 0x8002         # Load the base address of the status/test registers
-    ori     $s1, $0, 1          # Prepare the 'done' status
-    jal     $target
-    ori     $v0, $0, 0          # The test result starts as a failure
+    lui     $s0, 0x8002
+    ori     $s1, $0, 1
+    jal     target
+    ori     $t3, $0, 0
 
-$finish:
-    nop
-    nop
+after:
+    la      $t0, after
+    subu    $t1, $ra, $t0
+    sltiu   $t2, $t1, 1
+    and     $v0, $t2, $t3
+
+finish:
     sw      $v0, 4($s0)
     sw      $s1, 0($s0)
-
-$done:
-    j       $done
+    
+done:
+    j       done
     nop
 
-$target:
-    ori     $v0, $0, 1          # Set the result to pass
+target:
+    ori     $t3, $0, 1
     jr      $ra
     nop
 

@@ -19,14 +19,14 @@ boot:
     lui     $s0, 0x8002
     ori     $s1, $0, 1
     
-    lui     $t0, 0x1234
-    ori     $t1, $0, 0x1234
-    sll     $t1, $t1, 16
+    li      $t0, 0x89ABCDEF
+    lui     $t1, 0x89AB
+    ori     $t1, $t1, 0xCDEF
     subu    $t2, $t0, $t1
     sltiu   $v0, $t2, 1
 
     sw      $v0, 4($s0)
-    sw      $s1, 0($s0)         # Set 'done'
+    sw      $s1, 0($s0)
 
 $done:
     j       $done
