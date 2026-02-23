@@ -73,6 +73,8 @@ module decode (
     wire isBLEZ   = (op == `BLEZ) & (rt_addr == 5'b00000);
     wire isBLTZNL = (op == `BLTZ_GEZ) & (rt_addr == `BLTZ);
     wire isBLTZAL = (op == `BLTZ_GEZ) & (rt_addr == `BLTZAL);
+    wire isBGEZ   = (op == `BLTZ_GEZ) & (rt_addr == `BGEZ);
+    wire isBLTZ   = (op == `BLTZ_GEZ) & (rt_addr == `BLTZ);
     wire isBNE    = (op == `BNE);
     wire isBranchLink = (isBGEZAL | isBLTZAL);
 
