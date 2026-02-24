@@ -1,1 +1,11 @@
-TODO: Write your lab report here. See the handout for more information.
+### Group 6: Anna Yang (ajyang), Allen Weng (tt105241)
+
+### Instructions implemented
+add, addi, addiu, addu, and, andi, beq, bgez, bgtz, blez, bltz, bne, j, jal, jalr, jr, lb, lbu, lh, ll, lui, lw, movn, movz, mul, nor, or, ori, sb, sc, sh, sll, sllv, slt, slti, sltiu, sltu, sra, srav, srl, srlv, sub, subu, sw, xor, xori
+
+### Changes made to the control and datapath for hazards and forwarding
+Hazards: We added detection for memory dependency of rt in addition to the existing rs detection, and check both conditions when deciding whether to stall. For handling control hazards, we resolved control signals in the ID stage, which required one branch delay slot. 
+Forwarding: We added additional forward conditions to detect when we need to forward from the EX stage, on top of the existing MEM forwarding logic. We also added support for detecting dependencies on the rt register so we could forward values to both rs and rt if needed.
+
+### AI tools
+We used AI to understand what certain instructions were meant to do, since we weren’t familiar with the syntax and functionality of some of them. We also used it to generate more comprehensive test cases to diagnose issues that were not caught in the per-instruction tests but caused the sobel test to fail. We also used AI for help with Verilog syntax.
